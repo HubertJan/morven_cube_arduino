@@ -36,8 +36,11 @@ public:
         stU.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
         stU.setSpeed(stepperspeed); */
     }
-    void ExecuteCubeInstruction(char instruction[3])
+
+    bool ExecuteCubeInstruction(char instruction[3])
     {
+        /// Return: Bool - If instruction is finished, return true. Otherwise false
+
         /* 
         if (instruction == "F1")
         {
@@ -177,6 +180,7 @@ public:
             stD.move(-28);
             stD.runToPosition();
         } */
+        return true;
     }
     void ExecuteCubeDoubleInstruction(char instructionA[3], char instructionB[3])
     {

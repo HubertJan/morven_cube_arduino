@@ -53,8 +53,10 @@ public:
             }
             else
             {
-                motorController->ExecuteCubeInstruction(currentInstruction);
-                AddLatestExecutedInstruction(currentInstruction);
+                if (motorController->ExecuteCubeInstruction(currentInstruction)){
+                    AddLatestExecutedInstruction(currentInstruction);
+                }
+                
             }
 
             if (currentProgram.timeOfProgramStart == 0)
