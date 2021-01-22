@@ -30,7 +30,7 @@ public:
 
             char currentInstruction[3] = {};
             char nextInstruction[3] = {};
-            int numOfIns = 1;
+            int numOfIns = 0;
             bool executeAsDouble = false;
             GetInstruction(currentProgram.instructions, currentProgram.currentInstruction, currentInstruction);
             if (setting.doubleInstruction == true && currentProgram.currentInstruction + 1 <= programLength)
@@ -55,6 +55,7 @@ public:
             {
                 if (motorController->ExecuteCubeInstruction(currentInstruction)){
                     AddLatestExecutedInstruction(currentInstruction);
+                    numOfIns = 1;
                 }
                 
             }
