@@ -2,20 +2,47 @@
 #include <AccelStepper.h>
 #include <Servo.h>
 
-#define stepperAcceleration 50000
+/*AccelStepper stD(1, 0, 6); // STEP, DIR
+AccelStepper stR(1, 1, 7); // STEP, DIR
+AccelStepper stF(1, 2, 8); // STEP, DIR
+AccelStepper stL(1, 3, 9); // STEP, DIR
+AccelStepper stB(1, 4, 10); // STEP, DIR
+AccelStepper stU(1, 5, 11); // STEP, DIR
+*/
+
+#define stepperAcceleration 30000
+#define stepper100Acceleration 35000 //Limit 60000
 #define stepperMaxSpeed 3000
 #define stepperspeed 3000
 
 #define stepperDelay 0
-#define Mosfet 30
+#define cornerCuttingValue 2
+#define cornerCutting100Value 5
+
 
 class MotorController
 {
 public:
+    AccelStepper stD = AccelStepper(1, 0, 6); // STEP, DIR
+    AccelStepper stR = AccelStepper(1, 1, 7); // STEP, DIR
+    AccelStepper stF = AccelStepper(1, 2, 8); // STEP, DIR
+    AccelStepper stL = AccelStepper(1, 3, 9); // STEP, DIR
+    AccelStepper stB = AccelStepper(1, 4, 10); // STEP, DIR
+    AccelStepper stU = AccelStepper(1, 5, 11);
+    void runMotors(){
+      //stD.move(10);
+      stD.run();
+      stR.run();
+      stF.run();
+      stL.run();
+      stB.run();
+      stU.run(); 
+    }
     MotorController()
     {
-        /*         pinMode(7, OUTPUT);
-        pinMode(27, OUTPUT);
+        pinMode(28, OUTPUT); // Enable
+        pinMode(12, OUTPUT); //Enable
+
 
         stD.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2) VERMUTLICH IDEAL Ac: 8000 MaxSpeed: 3000 Speed: 1100
         stD.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
@@ -34,156 +61,104 @@ public:
         stB.setSpeed(stepperspeed);
         stU.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2)
         stU.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
-        stU.setSpeed(stepperspeed); */
+        stU.setSpeed(stepperspeed); 
     }
 
+    void moveMotor(char motor, int target){
+        target -= 50; //Da z.B. eine Zahl 2 als char toInt 52 ist
+        if(target == 7){
+            target = -1; 
+        }
+        int steps = target * 50;
+        int acceleration = stepperAcceleration;
+        if(target == 2){ // Falls es eine halbe umdrehung ist, wird die stepperAcceleration erhöht
+            acceleration = stepper100Acceleration;
+        }
+        if(motor == 'D'){
+          stD.setAcceleration(acceleration);
+          stD.move(steps);
+        }else if(motor == 'R'){
+          stR.setAcceleration(acceleration);
+          stR.move(steps);
+        }else if(motor == 'F'){
+          stF.setAcceleration(acceleration);
+          stF.move(steps);
+        }else if(motor == 'L'){
+          stL.setAcceleration(acceleration);
+          stL.move(steps);
+        }else if(motor == 'B'){
+          stB.setAcceleration(acceleration);
+          stB.move(steps);
+        }else if(motor == 'U'){
+          stU.setAcceleration(acceleration);
+          stU.move(steps);
+        }
+    }
+
+    int getDistance(char motor){
+      if(motor == 'D'){
+          return(stD.distanceToGo());
+        }else if(motor == 'R'){
+          return(stR.distanceToGo());
+        }else if(motor == 'F'){
+          return(stF.distanceToGo());
+        }else if(motor == 'L'){
+          return(stL.distanceToGo());
+        }else if(motor == 'B'){
+          return(stB.distanceToGo());
+        }else if(motor == 'U'){
+          return(stU.distanceToGo());
+        }
+    }
+    char lastInstruction[3];
     bool ExecuteCubeInstruction(char instruction[3])
-    {
-        /// Return: Bool - If instruction is finished, return true. Otherwise false
+    {   // Return: Bool - If instruction is finished, return true. Otherwise false
+        stD.run();
+        stR.run();
+        stF.run();
+        stL.run();
+        stB.run();
+        stU.run(); 
 
-        /* 
-        if (instruction == "F1")
-        {
-            stF.move(50);
-            stF.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "F2")
-        {
-            stF.move(100);
-            stF.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "F3")
-        {
-            stF.move(-50);
-            stF.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "R1")
-        {
-            stR.move(50);
-            stR.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "R2")
-        {
-            stR.move(100);
-            stR.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "R3")
-        {
-            stR.move(-50);
-            stR.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "U1")
-        {
-            stU.move(50);
-            stU.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "U2")
-        {
-            stU.move(100);
-            stU.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "U3")
-        {
-            stU.move(-50);
-            stU.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "B1")
-        {
-            stB.move(50);
-            stB.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "B2")
-        {
-            stB.move(100);
-            stB.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "B3")
-        {
-            stB.move(-50);
-            stB.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "L1")
-        {
-            stL.move(50);
-            stL.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "L2")
-        {
-            stL.move(100);
-            stL.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "L3")
-        {
-            stL.move(-50);
-            stL.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "D1")
-        {
-            stD.move(50);
-            stD.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "D2")
-        {
-            stD.move(100);
-            stD.runToPosition();
-            delay(stepperDelay);
-        }
-        else if (instruction == "D3")
-        {
-            stD.move(-50);
-            stD.runToPosition();
-            delay(stepperDelay);
-        }
-        else
-        {
-            delay(50);
-        }
-    }
+        if(instruction == lastInstruction){
+            //motor is already moving ; waiting to return
+            if(instruction[1] == 2){
+                if(getDistance(instruction[0]) <= cornerCutting100Value){
+                    return(true);
+                }else{
+                    return(false);
+                }
+            }else{
+                if(getDistance(instruction[0]) <= cornerCuttingValue){
+                    return(true);
+                }else{
+                    return(false);
+                }
+            }
 
-    void MoveCamera(String command)
-    {
-        if (incoming == "TBS22")
-        {
-            FirstStepperSpin(-22);
+            getDistance(instruction[0]);
+        }else{
+            //move ; instruction for the first time
+            
+             
+            moveMotor(instruction[0],instruction[1]);
+            lastInstruction[0] = instruction[0];
+            lastInstruction[1] = instruction[1];
+            lastInstruction[2] = instruction[2];
         }
-        else if (incoming == "TBS50")
-        {
-            stD.move(-50);
-            stD.runToPosition();
-        }
-        else if (incoming == "TBS100")
-        {
-            FirstStepperSpin(-100);
-        }
-        else if (incoming == "TBS-75")
-        {
-            FirstStepperSpin(75);
-        }
-        else if (incoming == "TBS28")
-        {
-            stD.move(-28);
-            stD.runToPosition();
-        } */
-        return true;
+        
+        //return true;
     }
-    void ExecuteCubeDoubleInstruction(char instructionA[3], char instructionB[3])
+    void ExecuteCubeDoubleInstruction(char instructionA[3], char instructionB[3]) 
     {
+        bool isFinished = false;
+        while(isFinished == false){
+            bool instr1 = ExecuteCubeInstruction(instructionA);
+            bool instr2 = ExecuteCubeInstruction(instructionB);
+            if(instr1&&instr2){
+                isFinished = true;
+            }
+        }
     }
 
     bool CheckDoubleInstruction(char instructionA[3], char instructionB[3])
@@ -221,12 +196,8 @@ public:
     }
 
 private:
-    AccelStepper stD = AccelStepper(1, 5, 52); // STEP, DIR
-    AccelStepper stR = AccelStepper(1, 2, 22); // STEP, DIR
-    AccelStepper stF = AccelStepper(1, 6, 26); // STEP, DIR
-    AccelStepper stL = AccelStepper(1, 4, 24); // STEP, DIR
-    AccelStepper stB = AccelStepper(1, 3, 23); // STEP, DIR
-    AccelStepper stU = AccelStepper(1, 7, 27);
+    
+    
 
     int speeds = 0;
     int dir = 1;           //used to switch direction
