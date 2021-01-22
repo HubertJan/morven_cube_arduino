@@ -30,7 +30,7 @@ public:
 
             char currentInstruction[3] = {};
             char nextInstruction[3] = {};
-            int numOfIns = 0;
+            int finishedIns = 0;
             bool executeAsDouble = false;
             GetInstruction(currentProgram.instructions, currentProgram.currentInstruction, currentInstruction);
             if (setting.doubleInstruction == true && currentProgram.currentInstruction + 1 <= programLength)
@@ -46,18 +46,44 @@ public:
             if (executeAsDouble)
             {
                 connector->DebugPrint("Double Instruction");
-                motorController->ExecuteCubeDoubleInstruction(currentInstruction, nextInstruction);
-                AddLatestExecutedInstruction(currentInstruction);
-                AddLatestExecutedInstruction(nextInstruction);
-                numOfIns = 2;
+                if (hasMoveInit)
+                {
+                    hasMoveInit = true;
+                }
+                else
+                {
+                    if (motorController->IsCubeInstructionDone(currentInstruction) && motorController->IsCubeInstructionDone(nextInstruction))
+                    {
+                        finishedIns = 2;
+                        AddLatestExecutedInstruction(currentInstruction);
+                        AddLatestExecutedInstruction(nextInstruction);
+                        hasMoveInit = false;
+                    }
+                    else
+                    {
+                        finishedIns = 0;
+                    }
+                }
             }
             else
             {
-                if (motorController->ExecuteCubeInstruction(currentInstruction)){
-                    AddLatestExecutedInstruction(currentInstruction);
-                    numOfIns = 1;
+                if (hasMoveInit)
+                {
+                    hasMoveInit = true;
                 }
-                
+                else
+                {
+                    if (motorController->IsCubeInstructionDone(currentInstruction))
+                    {
+                        finishedIns = 1;
+                        AddLatestExecutedInstruction(currentInstruction);
+                        hasMoveInit = false;
+                    }
+                    else
+                    {
+                        finishedIns = 0;
+                    }
+                }
             }
 
             if (currentProgram.timeOfProgramStart == 0)
@@ -75,7 +101,7 @@ public:
             }
             else
             {
-                currentProgram.currentInstruction += numOfIns;
+                currentProgram.currentInstruction += finishedIns;
             }
             stateChanged = true;
         }
@@ -143,6 +169,7 @@ public:
 
 private:
     String prepareInstructions = "";
+    bool hasMoveInit = false;
 
     struct Program
     {
