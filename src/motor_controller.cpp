@@ -171,20 +171,6 @@ public:
 
        moveMotor(instruction[0], instruction[1]);
     }
-    void ExecuteCubeDoubleInstruction(char instructionA[3], char instructionB[3])
-    {
-        bool isFinished = false;
-        while (isFinished == false)
-        {
-            bool instr1 = ExecuteCubeInstruction(instructionA);
-            bool instr2 = ExecuteCubeInstruction(instructionB);
-            if (instr1 && instr2)
-            {
-                isFinished = true;
-            }
-        }
-    }
-
     bool CheckDoubleInstruction(char instructionA[3], char instructionB[3])
     {
         bool isDouble = false;
