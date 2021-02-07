@@ -191,20 +191,20 @@ private:
 
     void SeparateCommandLine(String cdLine, String *resultCd)
     {
-        int argumentPosition = cdLine.indexOf(" ");
-        String commandWord;
-        String argumentLine;
-        if (argumentPosition == -1)
-        {
-            commandWord = cdLine;
+        int argumentsCounter = 0;
+        int i = 0;
+        while( i != -1){
+            i = cdLine.indexOf(" ");
+            resultCd[i] = cdLine.substring(0, i);
+
+            if(i !=-1){
+                argumentsCounter += 1;
+            }
         }
-        else
-        {
-            commandWord = cdLine.substring(0, argumentPosition);
-            argumentLine = cdLine.substring(argumentPosition + 1);
+
+        if(argumentsCounter == 0){
+            resultCd[0] = cdLine;
         }
-        resultCd[0] = commandWord;
-        resultCd[1] = argumentLine;
     }
 
     String ReceiveCommandLine()
@@ -228,7 +228,7 @@ private:
         return "";
     }
 
-    void HandleCommand(const String command[2])
+    void HandleCommand(const String command[])
     {
         for (int i = 0; i < 2; i++)
         {
