@@ -15,7 +15,7 @@ public:
     {
         arduino = ard;
         baud = b;
-        Serial.begin(9600);
+        Serial.begin(230400);
         while (!Serial.available())
         {
         }
@@ -45,8 +45,8 @@ public:
 
     void DebugPrint(String msg)
     {
-        Serial.println("debug;" + msg);
-        delay(100);
+        //Serial.println("debug;" + msg);
+        //delay(100);
     }
 
 private:

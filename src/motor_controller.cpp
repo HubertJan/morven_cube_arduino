@@ -2,6 +2,7 @@
 #include <AccelStepper.h>
 #include <Servo.h>
 
+
 /*AccelStepper stD(1, 0, 6); // STEP, DIR
 AccelStepper stR(1, 1, 7); // STEP, DIR
 AccelStepper stF(1, 2, 8); // STEP, DIR
@@ -10,14 +11,14 @@ AccelStepper stB(1, 4, 10); // STEP, DIR
 AccelStepper stU(1, 5, 11); // STEP, DIR
 */
 
-#define stepperAcceleration 30000
-#define stepper100Acceleration 35000 //Limit 60000
-#define stepperMaxSpeed 3000
-#define stepperspeed 3000
+#define stepperAcceleration 42000
+#define stepper100Acceleration 43000 //Limit 60000
+#define stepperMaxSpeed 4000
+#define stepperspeed 4000
 
 #define stepperDelay 0
-#define cornerCuttingValue 2
-#define cornerCutting100Value 5
+#define cornerCuttingValue 19
+#define cornerCutting100Value 20
 
 class MotorController
 {
@@ -31,6 +32,7 @@ public:
     void runMotors()
     {
         //stD.move(10);
+        //tone(22, 1000);
         stD.run();
         stR.run();
         stF.run();
@@ -38,6 +40,7 @@ public:
         stB.run();
         stU.run();
     }
+    //void MotorsOn
     MotorController()
     {
         pinMode(28, OUTPUT); // Enable
@@ -64,14 +67,17 @@ public:
     }
 
     void moveMotor(char motor, int target)
-    {
-        target -= 50; //Da z.B. eine Zahl 2 als char toInt 52 ist
+    {     
+      //tone(22, 1000); //Testton
+        
+        target -= 48; //Da z.B. eine Zahl 2 als char toInt 52 ist
         if (target == 7)
         {
             target = -1;
         }
         int steps = target * 50;
         int acceleration = stepperAcceleration;
+
         if (target == 2)
         { // Falls es eine halbe umdrehung ist, wird die stepperAcceleration erhöht
             acceleration = stepper100Acceleration;
@@ -137,11 +143,16 @@ public:
     }
     bool IsCubeInstructionDone(char instruction[3])
     {
-        if (instruction[1] == 2)
+        int distance = getDistance(instruction[0]);
+        if(distance < 0){
+          distance *= -1;
+        }
+        if (instruction[1] == '2')
         {
-            if (getDistance(instruction[0]) <= cornerCutting100Value)
+            if (distance <= cornerCutting100Value)
             {
-                return (true);
+                //tone(22, 1000); //Testton
+                return (true);                
             }
             else
             {
@@ -150,18 +161,22 @@ public:
         }
         else
         {
-            if (getDistance(instruction[0]) <= cornerCuttingValue)
+            if (distance <= cornerCuttingValue)
             {
+                //tone(22, 1000); //Testton
+                
                 return (true);
             }
             else
             {
+                
                 return (false);
             }
         }
     }
     bool ExecuteCubeInstruction(char instruction[3])
     { // Return: Bool - If instruction is finished, return true. Otherwise false
+      //tone(22, 1000); //Testton
         stD.run();
         stR.run();
         stF.run();
@@ -171,6 +186,20 @@ public:
 
        moveMotor(instruction[0], instruction[1]);
     }
+    void ExecuteCubeDoubleInstruction(char instructionA[3], char instructionB[3])
+    {
+        bool isFinished = false;
+        while (isFinished == false)
+        {
+            bool instr1 = ExecuteCubeInstruction(instructionA);
+            bool instr2 = ExecuteCubeInstruction(instructionB);
+            if (instr1 && instr2)
+            {
+                isFinished = true;
+            }
+        }
+    }
+
     bool CheckDoubleInstruction(char instructionA[3], char instructionB[3])
     {
         bool isDouble = false;
