@@ -45,7 +45,7 @@ public:
     {
         pinMode(28, OUTPUT); // Enable
         pinMode(12, OUTPUT); //Enable
-
+/* 
         stD.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2) VERMUTLICH IDEAL Ac: 8000 MaxSpeed: 3000 Speed: 1100
         stD.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
         stD.setSpeed(stepperspeed);
@@ -63,7 +63,7 @@ public:
         stB.setSpeed(stepperspeed);
         stU.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2)
         stU.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
-        stU.setSpeed(stepperspeed);
+        stU.setSpeed(stepperspeed); */
     }
 
     void moveMotor(char motor, int target)
@@ -111,7 +111,7 @@ public:
         {
             stU.setAcceleration(acceleration);
             stU.move(steps);
-        }
+        } 
     }
 
     int getDistance(char motor)
@@ -143,6 +143,7 @@ public:
     }
     bool IsCubeInstructionDone(char instruction[3])
     {
+        return true;
         int distance = getDistance(instruction[0]);
         if(distance < 0){
           distance *= -1;
@@ -177,18 +178,18 @@ public:
     bool ExecuteCubeInstruction(char instruction[3])
     { // Return: Bool - If instruction is finished, return true. Otherwise false
       //tone(22, 1000); //Testton
-        stD.run();
+/*         stD.run();
         stR.run();
         stF.run();
         stL.run();
         stB.run();
         stU.run();
 
-       moveMotor(instruction[0], instruction[1]);
+       moveMotor(instruction[0], instruction[1]); */
     }
     void ExecuteCubeDoubleInstruction(char instructionA[3], char instructionB[3])
     {
-        bool isFinished = false;
+   /*      bool isFinished = false;
         while (isFinished == false)
         {
             bool instr1 = ExecuteCubeInstruction(instructionA);
@@ -197,7 +198,7 @@ public:
             {
                 isFinished = true;
             }
-        }
+        } */
     }
 
     bool CheckDoubleInstruction(char instructionA[3], char instructionB[3])
