@@ -13,6 +13,7 @@ public:
     void Update()
     {
         connector->Update();
+        motorController->runMotors();
         if (statusCode == STATUS::PREPARE)
         {
             char currentInstruction[3] = {prepareInstructions[0], prepareInstructions[1], prepareInstructions[2]};
@@ -35,19 +36,23 @@ public:
             GetInstruction(currentProgram.instructions, currentProgram.currentInstruction, currentInstruction);
             if (setting.doubleInstruction == true && currentProgram.currentInstruction + 1 <= programLength)
             {
-                connector->DebugPrint("Check Instruction");
+                //connector->DebugPrint("Check Instruction");
                 GetInstruction(currentProgram.instructions, currentProgram.currentInstruction + 1, nextInstruction);
-                connector->DebugPrint("Double");
+                /*connector->DebugPrint("Double");
                 connector->DebugPrint(String(currentInstruction));
                 connector->DebugPrint("B");
-                connector->DebugPrint(String(nextInstruction));
+                connector->DebugPrint(String(nextInstruction));*/
                 executeAsDouble = motorController->CheckDoubleInstruction(currentInstruction, nextInstruction);
             }
             if (executeAsDouble)
             {
-                connector->DebugPrint("Double Instruction");
-                if (hasMoveInit)
+                //connector->DebugPrint("Double Instruction");
+                if (hasMoveInit == false)
                 {
+                    connector->DebugPrint(String(currentInstruction));
+                    connector->DebugPrint(String(nextInstruction));
+                    motorController->ExecuteCubeInstruction(currentInstruction);
+                    motorController->ExecuteCubeInstruction(nextInstruction);
                     hasMoveInit = true;
                 }
                 else
@@ -67,14 +72,20 @@ public:
             }
             else
             {
-                if (hasMoveInit)
+                if (hasMoveInit == false)
                 {
+                    connector->DebugPrint("move");
+                    connector->DebugPrint(String(currentInstruction));
+                    motorController->ExecuteCubeInstruction(currentInstruction);
                     hasMoveInit = true;
                 }
                 else
                 {
+                    //connector->DebugPrint(String(currentInstruction));
                     if (motorController->IsCubeInstructionDone(currentInstruction))
                     {
+                        connector->DebugPrint(String(currentInstruction));
+                        connector->DebugPrint("done!");
                         finishedIns = 1;
                         AddLatestExecutedInstruction(currentInstruction);
                         hasMoveInit = false;
@@ -85,29 +96,36 @@ public:
                     }
                 }
             }
-
+            motorController->runMotors();
             if (currentProgram.timeOfProgramStart == 0)
             {
+              digitalWrite(28, LOW);
+              digitalWrite(12, LOW);
+                
                 currentProgram.timeOfProgramStart = millis();
             }
-            else
-            {
-                currentProgram.runningTime = millis() - currentProgram.timeOfProgramStart;
-            }
+            
 
             if (programLength <= currentProgram.currentInstruction)
             {
+                currentProgram.runningTime = millis() - currentProgram.timeOfProgramStart;
                 statusCode = STATUS::FINISHED;
+                
+                digitalWrite(28, HIGH);
+                digitalWrite(12, HIGH);
+                delay(800);
             }
             else
             {
                 currentProgram.currentInstruction += finishedIns;
+                
             }
             stateChanged = true;
         }
+        motorController->runMotors();
         if (stateChanged)
         {
-            if (setting.noLogMode == false || statusCode == STATUS::FINISHED)
+            if (statusCode != STATUS::RUN) //war mal da: setting.noLogMode == false || 
             {
                 connector->DebugPrint("Send Full Status");
                 connector->SendFullStatus(currentProgram.instructions, currentProgram.id, String(currentProgram.currentInstruction), GetLatestExecutedInstruction(), StatusCodeAsString(), String(currentProgram.runningTime));
@@ -184,7 +202,7 @@ private:
         int speed = 0;                 //Duration of one instruction in ms; O = fast as possible
         bool doubleInstruction = true; //Two instruction in one move (if possible)
         int acceleration = 0;
-        bool noLogMode = false; //Turn of serial prints between actions
+        bool noLogMode = true; //Turn of serial prints between actions
     };
 
     enum class STATUS
@@ -200,7 +218,7 @@ private:
     {
         outInstruction[0] = instructions[id * 3];
         outInstruction[1] = instructions[id * 3 + 1];
-        connector->DebugPrint(outInstruction);
+        //connector->DebugPrint(outInstruction);
     };
 
     String StatusCodeAsString()
@@ -232,7 +250,7 @@ private:
             executedInstruction += " ";
         }
         executedInstruction += String(instruction);
-        connector->DebugPrint(executedInstruction);
+        //connector->DebugPrint(executedInstruction);
     }
     String GetLatestExecutedInstruction()
     {
