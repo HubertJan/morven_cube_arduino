@@ -1,12 +1,23 @@
 #include <Arduino.h>
 
+struct MotorSetting
+{
+    int acc50;
+    int acc100;
+    int cc50;
+    int cc100;
+    int maxSp;
+};
+
 class ArduinoClient
 {
 public:
     virtual void SwitchPause(bool value) = 0;
-    virtual void SetProgram(String instructionString, String id, bool fastMode) = 0;
+    virtual void SetProgram(String instructionString, String id, bool fastMode, MotorSetting motorSetting) = 0;
     virtual void SetSetting(int val, bool val2) = 0;
 };
+
+
 
 class PCConnector
 {
@@ -15,7 +26,7 @@ public:
     {
         arduino = ard;
         baud = b;
-        Serial.begin(230400);
+        Serial.begin(9600);
         while (!Serial.available())
         {
         }
@@ -86,6 +97,20 @@ private:
         ArgsToArray(argsString, argNumber, args);
         String instructions = args[0];
         String id = args[1];
+        if ( args[2] == "1"){
+            bool isDouble = true;
+        }else{
+            bool isDouble = false;
+        }
+       
+        MotorSetting setting = MotorSetting();
+
+        setting.acc50 = args[3].toInt();
+        setting.acc100 = args[4].toInt();
+        setting.cc50 = args[5].toInt();
+        setting.cc100 = args[6].toInt();
+        setting.maxSp = args[7].toInt();
+
         if (argNumber == 3)
         {
             DebugPrint(String("FAST MODE"));
@@ -95,12 +120,12 @@ private:
                 fastMode = true;
                 DebugPrint(String("FAST MODE ACTIVATED"));
             }
-            arduino->SetProgram(instructions, id, fastMode);
+            arduino->SetProgram(instructions, id, fastMode, setting);
             SendProgramAsResponse(instructions, id);
         }
         else
         {
-            arduino->SetProgram(instructions, id, false);
+            arduino->SetProgram(instructions, id, false, setting);
             SendProgramAsResponse(instructions, id);
         }
     }

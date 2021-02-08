@@ -46,24 +46,33 @@ public:
         pinMode(28, OUTPUT); // Enable
         pinMode(12, OUTPUT); //Enable
 /* 
-        stD.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2) VERMUTLICH IDEAL Ac: 8000 MaxSpeed: 3000 Speed: 1100
-        stD.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
+        stD.setAcceleration(acc50); //set acceleration (steps/second^2) VERMUTLICH IDEAL Ac: 8000 MaxSpeed: 3000 Speed: 1100
+        stD.setMaxSpeed(maxSp);         //set max speed the motor will turn (steps/second)
         stD.setSpeed(stepperspeed);
-        stR.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2)
-        stR.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
+        stR.setAcceleration(acc50); //set acceleration (steps/second^2)
+        stR.setMaxSpeed(maxSp);         //set max speed the motor will turn (steps/second)
         stR.setSpeed(stepperspeed);
-        stF.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2)
-        stF.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
+        stF.setAcceleration(acc50); //set acceleration (steps/second^2)
+        stF.setMaxSpeed(maxSp);         //set max speed the motor will turn (steps/second)
         stF.setSpeed(stepperspeed);
-        stL.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2)
-        stL.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
+        stL.setAcceleration(acc50); //set acceleration (steps/second^2)
+        stL.setMaxSpeed(maxSp);         //set max speed the motor will turn (steps/second)
         stL.setSpeed(stepperspeed);
-        stB.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2)
-        stB.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
+        stB.setAcceleration(acc50); //set acceleration (steps/second^2)
+        stB.setMaxSpeed(maxSp);         //set max speed the motor will turn (steps/second)
         stB.setSpeed(stepperspeed);
-        stU.setAcceleration(stepperAcceleration); //set acceleration (steps/second^2)
-        stU.setMaxSpeed(stepperMaxSpeed);         //set max speed the motor will turn (steps/second)
+        stU.setAcceleration(acc50); //set acceleration (steps/second^2)
+        stU.setMaxSpeed(maxSp);         //set max speed the motor will turn (steps/second)
         stU.setSpeed(stepperspeed); */
+    }
+
+    void setSettings(int newAcc50, int newAcc100, int newCc50, int newCc100, int newMaxSp)
+    {
+        acc50 = newAcc50;
+        acc100 = newAcc100;
+        cc50 = newCc50;
+        cc100 = newCc100;
+        maxSp = newMaxSp;
     }
 
     void moveMotor(char motor, int target)
@@ -76,7 +85,7 @@ public:
             target = -1;
         }
         int steps = target * 50;
-        int acceleration = stepperAcceleration;
+        int acceleration = acc50;
 
         if (target == 2)
         { // Falls es eine halbe umdrehung ist, wird die stepperAcceleration erhöht
@@ -240,6 +249,11 @@ private:
     int speeds = 0;
     int dir = 1;           //used to switch direction
     String incoming = "1"; // for incoming serial data
+    int acc50 = 42000;
+    int acc100 = 43000; //Limit 60000
+    int maxSp = 4000;
+    int cc50 = 19;
+    int cc100 = 20;
 
     void FirstStepperSpin(int steps)
     {

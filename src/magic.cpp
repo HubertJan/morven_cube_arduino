@@ -151,9 +151,10 @@ public:
         stateChanged = true;
     }
 
-    void SetProgram(String instructionString, String id, bool fastMode)
+    void SetProgram(String instructionString, String id, bool isDoubleIns, MotorSetting motorSetting)
     {
-        setting.noLogMode = fastMode;
+        setting.doubleInstruction = isDoubleIns;
+        motorController->setSettings(motorSetting.acc50, motorSetting.acc100, motorSetting.cc50, motorSetting.cc100, motorSetting.maxSp);
         if (statusCode == STATUS::IDLE || statusCode == STATUS::FINISHED)
         {
             currentProgram.id = id;
