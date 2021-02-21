@@ -31,6 +31,8 @@ public:
     AccelStepper stU = AccelStepper(1, 5, 11);
     void runMotors()
     {
+        debugCounter += 1;
+        return;
         //stD.move(10);
         //tone(22, 1000);
         stD.run();
@@ -78,7 +80,7 @@ public:
     void moveMotor(char motor, int target)
     {     
       //tone(22, 1000); //Testton
-        
+   
         target -= 48; //Da z.B. eine Zahl 2 als char toInt 52 ist
         if (target == 7)
         {
@@ -152,7 +154,10 @@ public:
     }
     bool IsCubeInstructionDone(char instruction[3])
     {
-        return true;
+        if (debugCounter >= 5){
+            return true;
+        }
+        return false;
         int distance = getDistance(instruction[0]);
         if(distance < 0){
           distance *= -1;
@@ -184,8 +189,10 @@ public:
             }
         }
     }
-    bool ExecuteCubeInstruction(char instruction[3])
-    { // Return: Bool - If instruction is finished, return true. Otherwise false
+    void ExecuteCubeInstruction(char instruction[3])
+    {
+        debugCounter = 0;
+         // Return: Bool - If instruction is finished, return true. Otherwise false
       //tone(22, 1000); //Testton
 /*         stD.run();
         stR.run();
@@ -198,6 +205,7 @@ public:
     }
     void ExecuteCubeDoubleInstruction(char instructionA[3], char instructionB[3])
     {
+        debugCounter = 0;
    /*      bool isFinished = false;
         while (isFinished == false)
         {
@@ -254,6 +262,8 @@ private:
     int maxSp = 4000;
     int cc50 = 19;
     int cc100 = 20;
+
+    int debugCounter = 0;
 
     void FirstStepperSpin(int steps)
     {

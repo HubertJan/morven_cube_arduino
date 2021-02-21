@@ -27,26 +27,20 @@ public:
         }
         else if (statusCode == STATUS::RUN)
         {
-            int programLength = (currentProgram.instructions.length() + 1) / 3 - 1;
+            int programLength = (currentProgram.instructions.length() + 1) / 3;
 
             char currentInstruction[3] = {};
             char nextInstruction[3] = {};
             int finishedIns = 0;
             bool executeAsDouble = false;
             GetInstruction(currentProgram.instructions, currentProgram.currentInstruction, currentInstruction);
-            if (setting.doubleInstruction == true && currentProgram.currentInstruction + 1 <= programLength)
+            if (setting.doubleInstruction == true && currentProgram.currentInstruction < programLength)
             {
-                //connector->DebugPrint("Check Instruction");
                 GetInstruction(currentProgram.instructions, currentProgram.currentInstruction + 1, nextInstruction);
-                /*connector->DebugPrint("Double");
-                connector->DebugPrint(String(currentInstruction));
-                connector->DebugPrint("B");
-                connector->DebugPrint(String(nextInstruction));*/
                 executeAsDouble = motorController->CheckDoubleInstruction(currentInstruction, nextInstruction);
             }
             if (executeAsDouble)
             {
-                //connector->DebugPrint("Double Instruction");
                 if (hasMoveInit == false)
                 {
                     connector->DebugPrint(String(currentInstruction));
@@ -74,17 +68,15 @@ public:
             {
                 if (hasMoveInit == false)
                 {
-                    connector->DebugPrint("move");
+                    connector->DebugPrint("Move");
                     connector->DebugPrint(String(currentInstruction));
                     motorController->ExecuteCubeInstruction(currentInstruction);
                     hasMoveInit = true;
                 }
                 else
                 {
-                    //connector->DebugPrint(String(currentInstruction));
                     if (motorController->IsCubeInstructionDone(currentInstruction))
                     {
-                        connector->DebugPrint(String(currentInstruction));
                         connector->DebugPrint("done!");
                         finishedIns = 1;
                         AddLatestExecutedInstruction(currentInstruction);
@@ -92,6 +84,7 @@ public:
                     }
                     else
                     {
+                        connector->DebugPrint("Still Moving");
                         finishedIns = 0;
                     }
                 }
@@ -170,13 +163,6 @@ public:
         }
     }
 
-    /*    void SetPrepareAndProgram(String programInstructionString, String id, String prepareInsructionString)
-    {
-        statusCode = STATUS::PREPARE;
-        prepareInstructions = prepareInsructionString;
-        SetProgram(programInstructionString, id);
-    }
- */
     void SetSetting(int newSpeed, bool doubleInstruction)
     {
         if (statusCode == STATUS::IDLE || statusCode == STATUS::FINISHED)
@@ -219,7 +205,6 @@ private:
     {
         outInstruction[0] = instructions[id * 3];
         outInstruction[1] = instructions[id * 3 + 1];
-        //connector->DebugPrint(outInstruction);
     };
 
     String StatusCodeAsString()
@@ -251,7 +236,6 @@ private:
             executedInstruction += " ";
         }
         executedInstruction += String(instruction);
-        //connector->DebugPrint(executedInstruction);
     }
     String GetLatestExecutedInstruction()
     {

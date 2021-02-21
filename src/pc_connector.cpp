@@ -56,8 +56,8 @@ public:
 
     void DebugPrint(String msg)
     {
-        //Serial.println("debug;" + msg);
-        //delay(100);
+        Serial.println("debug;" + msg);
+        delay(100);
     }
 
 private:
@@ -85,14 +85,13 @@ private:
     {
         String responseString = String("response;");
         responseString.concat(DataToString("programInstructions", prgIns)).concat(DataToString("programId", prgId));
-        Serial.println(responseString);
+        Serial.println("response;");
         delay(100);
     }
 
     void SetProgram(String argsString)
     {
         int argNumber = CountArguments(argsString);
-        DebugPrint(String("argNumber " + String(argNumber)));
         String args[argNumber];
         ArgsToArray(argsString, argNumber, args);
         String instructions = args[0];
@@ -160,7 +159,6 @@ private:
         while (finished == false)
         {
             charIndex = inp.indexOf(character, charIndex);
-            DebugPrint(": " + String(charIndex) + " ;");
             if (charIndex != -1)
             {
                 counter += 1;
