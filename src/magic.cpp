@@ -1,5 +1,6 @@
-#include "pc_connector.cpp"
+#include "server_serial_connector.cpp"
 #include "motor_controller.cpp"
+#include "models/status.cpp"
 
 class Magic : IArduinoClient
 {
@@ -7,12 +8,12 @@ public:
     Magic() = delete;
     Magic(int baudRate)
     {
-        connector = new PCConnector(baudRate, this);
+        connector = new ServerSerialConnector(baudRate, this);
         motorController = new MotorController();
     }
     void Update()
     {
-        connector->Update();
+        connector->receiveAndHandleCommand();
         motorController->runMotors();
         if (statusCode == STATUS::PREPARE)
         {
@@ -43,8 +44,8 @@ public:
             {
                 if (hasMoveInit == false)
                 {
-                    connector->DebugPrint(String(currentInstruction));
-                    connector->DebugPrint(String(nextInstruction));
+                    connector->sendDebugPrint(String(currentInstruction));
+                    connector->sendDebugPrint(String(nextInstruction));
                     motorController->ExecuteCubeInstruction(currentInstruction);
                     motorController->ExecuteCubeInstruction(nextInstruction);
                     hasMoveInit = true;
@@ -68,8 +69,8 @@ public:
             {
                 if (hasMoveInit == false)
                 {
-                    connector->DebugPrint("Move");
-                    connector->DebugPrint(String(currentInstruction));
+                    connector->sendDebugPrint("Move");
+                    connector->sendDebugPrint(String(currentInstruction));
                     motorController->ExecuteCubeInstruction(currentInstruction);
                     hasMoveInit = true;
                 }
@@ -77,14 +78,14 @@ public:
                 {
                     if (motorController->IsCubeInstructionDone(currentInstruction))
                     {
-                        connector->DebugPrint("done!");
+                        connector->sendDebugPrint("done!");
                         finishedIns = 1;
                         AddLatestExecutedInstruction(currentInstruction);
                         hasMoveInit = false;
                     }
                     else
                     {
-                        connector->DebugPrint("Still Moving");
+                        connector->sendDebugPrint("Still Moving");
                         finishedIns = 0;
                     }
                 }
@@ -120,9 +121,9 @@ public:
         {
             if (statusCode != STATUS::RUN) //war mal da: setting.noLogMode == false || 
             {
-                connector->DebugPrint("Send Full Status");
-                connector->SendFullStatus(currentProgram.instructions, currentProgram.id, String(currentProgram.currentInstruction), GetLatestExecutedInstruction(), StatusCodeAsString(), String(currentProgram.runningTime));
-                connector->DebugPrint("Sucessfull");
+                connector->sendDebugPrint("Send Full Status");
+                connector->sendFullStatus(currentProgram.instructions, currentProgram.id, String(currentProgram.currentInstruction), GetLatestExecutedInstruction(), StatusCodeAsString(), String(currentProgram.runningTime));
+                connector->sendDebugPrint("Sucessfull");
             }
             stateChanged = false;
         }
@@ -223,7 +224,7 @@ private:
     bool stateChanged = true;
     String executedInstruction = "";
 
-    PCConnector *connector;
+    ServerSerialConnector *connector;
     Program currentProgram;
     Setting setting;
     MotorController *motorController;

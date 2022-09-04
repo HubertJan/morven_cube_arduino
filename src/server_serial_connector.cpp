@@ -1,14 +1,14 @@
-#include "generic_serial_connector.cpp"
+#include "serial_connector.cpp"
 #include "models/motor_settings.cpp"
 #include "arduino_client_interface.cpp"
 
 class ServerSerialConnector
 {
-
+public:
     ServerSerialConnector(int baudrate, IArduinoClient *arduinoClient)
     {
-        *connector = SerialConnector(baudrate);
-        arduino = arduinoClient
+        connector = new SerialConnector(baudrate);
+        arduino = arduinoClient;
     }
 
     void receiveAndHandleCommand()
@@ -19,19 +19,54 @@ class ServerSerialConnector
         {
             return;
         }
-        if (command == "pause")
+        if (command.command == "pause")
         {
             handlePause(command.arguments);
         }
-        else if (command == "program")
+        else if (command.command == "program")
         {
-            handle
+            handleProgram(command.arguments);
         }
+    }
+
+    void sendFullStatus(
+        String programInstructions,
+        String programId,
+        String latestInstructionId,
+        String status,
+        String runtime)
+    {
+        connector->sendData(
+            createDataString(
+                programInstructions,
+                programId,
+                latestInstructionId,
+                status,
+                runtime));
+    }
+
+    String createDataString(String programInstructions,
+                            String programId,
+                            String latestInstructionId,
+                            String status,
+                            String runtime)
+    {
+        return convertDataToString("in", programInstructions) + convertDataToString("id", programId) + convertDataToString("ci", latestInstructionId) + convertDataToString("li", status) + convertDataToString("st", runtime);
+    }
+
+    void sendDebugPrint(String message)
+    {
+        connector->printDebugMessage(message);
     }
 
 private:
     SerialConnector *connector;
     IArduinoClient *arduino;
+
+    String convertDataToString(String name, String value)
+    {
+        return name + "=" + value + ";";
+    }
 
     void handlePause(String arguments)
     {
@@ -65,8 +100,7 @@ private:
              seperateArguments[4].toInt(),
              seperateArguments[5].toInt(),
              seperateArguments[6].toInt(),
-             seperateArguments[7].toInt()}
-        };
+             seperateArguments[7].toInt()}};
     }
 
     void handleProgram(String arguments)
@@ -76,7 +110,7 @@ private:
             programArguments.instructions,
             programArguments.id,
             true,
-            programArguments.motorSettings
-        );
+            programArguments.motorSettings);
+        connector->sendResponse();
     }
 };

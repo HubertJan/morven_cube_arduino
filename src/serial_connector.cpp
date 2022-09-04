@@ -6,6 +6,7 @@ struct Command
     String arguments;
 };
 
+
 class SerialConnector
 {
 public:
@@ -68,6 +69,15 @@ public:
     {
         Serial.println("debug;" + message);
         delay(100);
+    }
+
+    void sendResponse()
+    {
+        Serial.println("response;");
+    }
+
+    void sendData(String dataString){
+        Serial.println("data;" + dataString);
     }
 
 private:
