@@ -1,28 +1,11 @@
 #include <Arduino.h>
-
-struct MotorSetting
-{
-    int acc50;
-    int acc100;
-    int cc50;
-    int cc100;
-    int maxSp;
-};
-
-class ArduinoClient
-{
-public:
-    virtual void SwitchPause(bool value) = 0;
-    virtual void SetProgram(String instructionString, String id, bool fastMode, MotorSetting motorSetting) = 0;
-    virtual void SetSetting(int val, bool val2) = 0;
-};
-
-
+#include "models/motor_settings.cpp"
+#include "arduino_client_interface.cpp"
 
 class PCConnector
 {
 public:
-    PCConnector(int b, ArduinoClient *ard)
+    PCConnector(int b, IArduinoClient *ard)
     {
         arduino = ard;
         baud = b;
@@ -45,12 +28,12 @@ public:
 
     void SendFullStatus(String prgIns, String prgId, String insId, String exeIns, String sta, String rt)
     {
-        Serial.println("data;" + DataToString("in", prgIns) //programInstructions
-                       + DataToString("id", prgId)          //programId
-                       + DataToString("ci", insId)          //currentInstructionId
-                       + DataToString("li", exeIns)         //latestInstructions
-                       + DataToString("st", sta)            //status
-                       + DataToString("rt", rt)             //runTime
+        Serial.println("data;" + DataToString("in", prgIns) // programInstructions
+                       + DataToString("id", prgId)     // programId
+                       + DataToString("ci", insId)     // currentInstructionId
+                       + DataToString("li", exeIns)    // latestInstructions
+                       + DataToString("st", sta)       // status
+                       + DataToString("rt", rt)        // runTime
         );
     }
 
@@ -62,7 +45,7 @@ public:
 
 private:
     int baud = 0;
-    ArduinoClient *arduino;
+    IArduinoClient *arduino;
 
     String DataToString(String name, String value)
     {
@@ -96,12 +79,15 @@ private:
         ArgsToArray(argsString, argNumber, args);
         String instructions = args[0];
         String id = args[1];
-        if ( args[2] == "1"){
+        if (args[2] == "1")
+        {
             bool isDouble = true;
-        }else{
+        }
+        else
+        {
             bool isDouble = false;
         }
-       
+
         MotorSetting setting = MotorSetting();
 
         setting.acc50 = args[3].toInt();
@@ -212,7 +198,7 @@ private:
     String receivedString = "";
     bool stringComplete = false;
 
-    void SeparateCommandLine(String cdLine, String *resultCd)
+    void SeparateCommandLine(String *cdLine, String *resultCd)
     {
         int argumentPosition = cdLine.indexOf(" ");
         String commandWord;
@@ -232,7 +218,6 @@ private:
 
     String ReceiveCommandLine()
     {
-
         while (Serial.available())
         {
             char inChar = (char)Serial.read();
@@ -241,7 +226,7 @@ private:
                 DebugPrint(receivedString);
                 String commandLine = receivedString;
                 receivedString = "";
-                return commandLine; //commandLine;
+                return commandLine; // commandLine;
             }
             else
             {

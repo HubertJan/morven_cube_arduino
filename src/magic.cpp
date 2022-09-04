@@ -1,7 +1,7 @@
 #include "pc_connector.cpp"
 #include "motor_controller.cpp"
 
-class Magic : ArduinoClient
+class Magic : IArduinoClient
 {
 public:
     Magic() = delete;
@@ -144,7 +144,7 @@ public:
         stateChanged = true;
     }
 
-    void SetProgram(String instructionString, String id, bool isDoubleIns, MotorSetting motorSetting)
+    void SetProgram(String instructionString, String id, bool isDoubleIns, MotorSettings motorSetting)
     {
         setting.doubleInstruction = isDoubleIns;
         motorController->setSettings(motorSetting.acc50, motorSetting.acc100, motorSetting.cc50, motorSetting.cc100, motorSetting.maxSp);
@@ -175,31 +175,6 @@ public:
 private:
     String prepareInstructions = "";
     bool hasMoveInit = false;
-
-    struct Program
-    {
-        String id = "";
-        int currentInstruction = 0;
-        String instructions = "";
-        unsigned long runningTime = 0;
-        unsigned long timeOfProgramStart = 0;
-    };
-    struct Setting
-    {
-        int speed = 0;                 //Duration of one instruction in ms; O = fast as possible
-        bool doubleInstruction = true; //Two instruction in one move (if possible)
-        int acceleration = 0;
-        bool noLogMode = true; //Turn of serial prints between actions
-    };
-
-    enum class STATUS
-    {
-        IDLE,
-        PREPARE,
-        RUN,
-        PAUSE,
-        FINISHED,
-    };
 
     void GetInstruction(String instructions, int id, char *outInstruction)
     {
