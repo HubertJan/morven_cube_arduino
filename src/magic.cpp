@@ -1,6 +1,8 @@
 #include "server_serial_connector.cpp"
 #include "motor_controller.cpp"
 #include "models/status.cpp"
+#include "models/program.cpp"
+#include "models/settings.cpp"
 
 class Magic : IArduinoClient
 {
@@ -17,165 +19,183 @@ public:
         motorController->runMotors();
         if (statusCode == STATUS::PREPARE)
         {
-            char currentInstruction[3] = {prepareInstructions[0], prepareInstructions[1], prepareInstructions[2]};
-            motorController->ExecuteCubeInstruction(currentInstruction);
-            AddLatestExecutedInstruction(currentInstruction);
-            prepareInstructions.remove(0, 2);
-            if (prepareInstructions == "")
-            {
-                statusCode = STATUS::RUN;
-            }
+            prepareProgram();
         }
         else if (statusCode == STATUS::RUN)
         {
-            int programLength = (currentProgram.instructions.length() + 1) / 3;
-
-            char currentInstruction[3] = {};
-            char nextInstruction[3] = {};
-            int finishedIns = 0;
-            bool executeAsDouble = false;
-            GetInstruction(currentProgram.instructions, currentProgram.currentInstruction, currentInstruction);
-            if (setting.doubleInstruction == true && currentProgram.currentInstruction < programLength)
-            {
-                GetInstruction(currentProgram.instructions, currentProgram.currentInstruction + 1, nextInstruction);
-                executeAsDouble = motorController->CheckDoubleInstruction(currentInstruction, nextInstruction);
-            }
-            if (executeAsDouble)
-            {
-                if (hasMoveInit == false)
-                {
-                    connector->sendDebugPrint(String(currentInstruction));
-                    connector->sendDebugPrint(String(nextInstruction));
-                    motorController->ExecuteCubeInstruction(currentInstruction);
-                    motorController->ExecuteCubeInstruction(nextInstruction);
-                    hasMoveInit = true;
-                }
-                else
-                {
-                    if (motorController->IsCubeInstructionDone(currentInstruction) && motorController->IsCubeInstructionDone(nextInstruction))
-                    {
-                        finishedIns = 2;
-                        AddLatestExecutedInstruction(currentInstruction);
-                        AddLatestExecutedInstruction(nextInstruction);
-                        hasMoveInit = false;
-                    }
-                    else
-                    {
-                        finishedIns = 0;
-                    }
-                }
-            }
-            else
-            {
-                if (hasMoveInit == false)
-                {
-                    connector->sendDebugPrint("Move");
-                    connector->sendDebugPrint(String(currentInstruction));
-                    motorController->ExecuteCubeInstruction(currentInstruction);
-                    hasMoveInit = true;
-                }
-                else
-                {
-                    if (motorController->IsCubeInstructionDone(currentInstruction))
-                    {
-                        connector->sendDebugPrint("done!");
-                        finishedIns = 1;
-                        AddLatestExecutedInstruction(currentInstruction);
-                        hasMoveInit = false;
-                    }
-                    else
-                    {
-                        connector->sendDebugPrint("Still Moving");
-                        finishedIns = 0;
-                    }
-                }
-            }
-            motorController->runMotors();
-            if (currentProgram.timeOfProgramStart == 0)
-            {
-              digitalWrite(28, LOW);
-              digitalWrite(12, LOW);
-                
-                currentProgram.timeOfProgramStart = millis();
-            }
-            
-
-            if (programLength <= currentProgram.currentInstruction)
-            {
-                currentProgram.runningTime = millis() - currentProgram.timeOfProgramStart;
-                statusCode = STATUS::FINISHED;
-                
-                digitalWrite(28, HIGH);
-                digitalWrite(12, HIGH);
-                delay(800);
-            }
-            else
-            {
-                currentProgram.currentInstruction += finishedIns;
-                
-            }
-            stateChanged = true;
+            runProgram();
         }
         motorController->runMotors();
-        if (stateChanged)
-        {
-            if (statusCode != STATUS::RUN) //war mal da: setting.noLogMode == false || 
-            {
-                connector->sendDebugPrint("Send Full Status");
-                connector->sendFullStatus(currentProgram.instructions, currentProgram.id, String(currentProgram.currentInstruction), GetLatestExecutedInstruction(), StatusCodeAsString(), String(currentProgram.runningTime));
-                connector->sendDebugPrint("Sucessfull");
-            }
-            stateChanged = false;
-        }
+
+        reportChanges();
     }
-    void SwitchPause(bool pause)
+    void changeIsPausing(bool shouldPause)
     {
-        if (statusCode == STATUS::RUN && pause == true)
-        {
-            statusCode = STATUS::PAUSE;
-        }
-        else if (statusCode == STATUS::PAUSE && pause == false)
-        {
-            statusCode = STATUS::RUN;
-        }
-        else
+        if (statusCode != STATUS::RUN && statusCode != STATUS::PAUSE)
         {
             return;
         }
-        stateChanged = true;
+        if (statusCode == STATUS::PAUSE && shouldPause == true)
+        {
+            return;
+        }
+        if (statusCode == STATUS::RUN && shouldPause == false)
+        {
+            return;
+        }
+        statusCode = shouldPause ? STATUS::PAUSE : STATUS::RUN;
+        stateHasChanged = true;
     }
 
-    void SetProgram(String instructionString, String id, bool isDoubleIns, MotorSettings motorSetting)
+    void setupProgram(String instructionString, String id)
     {
-        setting.doubleInstruction = isDoubleIns;
-        motorController->setSettings(motorSetting.acc50, motorSetting.acc100, motorSetting.cc50, motorSetting.cc100, motorSetting.maxSp);
-        if (statusCode == STATUS::IDLE || statusCode == STATUS::FINISHED)
+        if (statusCode == STATUS::IDLE)
         {
             currentProgram.id = id;
             currentProgram.instructions = instructionString;
-            currentProgram.currentInstruction = 0;
+            currentProgram.lastInstructionId = 0;
             currentProgram.runningTime = 0;
             currentProgram.timeOfProgramStart = 0;
+            currentProgram.totalInstructions = (currentProgram.instructions.length() + 1) / 3;
             if (statusCode != STATUS::PREPARE)
             {
                 statusCode = STATUS::RUN;
             }
-            stateChanged = true;
+            stateHasChanged = true;
         }
     }
 
-    void SetSetting(int newSpeed, bool doubleInstruction)
+    void updateSettings(MagicSettings magicSettings,
+                        MotorSettings motorSettings)
     {
-        if (statusCode == STATUS::IDLE || statusCode == STATUS::FINISHED)
+        if (statusCode == STATUS::IDLE)
         {
-            setting.speed = newSpeed;
-            setting.doubleInstruction = doubleInstruction;
+            settings = magicSettings;
+            motorController->motorSettings = motorSettings;
         }
     }
 
 private:
     String prepareInstructions = "";
     bool hasMoveInit = false;
+
+    void prepareProgram()
+    {
+        char lastInstruction[3] = {prepareInstructions[0], prepareInstructions[1], prepareInstructions[2]};
+        motorController->ExecuteCubeInstruction(lastInstruction);
+        AddLatestExecutedInstruction(lastInstruction);
+        prepareInstructions.remove(0, 2);
+        if (prepareInstructions == "")
+        {
+            statusCode = STATUS::RUN;
+        }
+    }
+
+    void runProgram()
+    {
+        char nextInstruction[3] = {};
+        char possibleSecondInstruction[3] = {};
+        int finishedIns = 0;
+        bool canBeExecutedAsDouble = false;
+        int nextInstructionId = currentProgram.lastInstructionId + 1;
+        GetInstruction(currentProgram.instructions, nextInstructionId, nextInstruction);
+        if (settings.useDoubleInstruction == true && currentProgram.lastInstructionId < currentProgram.totalInstructions)
+        {
+            GetInstruction(currentProgram.instructions, nextInstructionId + 1, possibleSecondInstruction);
+            canBeExecutedAsDouble = motorController->CheckDoubleInstruction(nextInstruction, possibleSecondInstruction);
+        }
+        if (canBeExecutedAsDouble)
+        {
+            if (hasMoveInit == false)
+            {
+                connector->sendDebugPrint(String(nextInstruction));
+                connector->sendDebugPrint(String(possibleSecondInstruction));
+                motorController->ExecuteCubeInstruction(nextInstruction);
+                motorController->ExecuteCubeInstruction(possibleSecondInstruction);
+                hasMoveInit = true;
+            }
+            else
+            {
+                if (motorController->IsCubeInstructionDone(nextInstruction) && motorController->IsCubeInstructionDone(possibleSecondInstruction))
+                {
+                    finishedIns = 2;
+                    AddLatestExecutedInstruction(nextInstruction);
+                    AddLatestExecutedInstruction(possibleSecondInstruction);
+                    hasMoveInit = false;
+                }
+                else
+                {
+                    finishedIns = 0;
+                }
+            }
+        }
+        else
+        {
+            // TODO: Rework
+            if (hasMoveInit == false)
+            {
+                connector->sendDebugPrint("Move");
+                connector->sendDebugPrint(String(nextInstruction));
+                motorController->ExecuteCubeInstruction(nextInstruction);
+                hasMoveInit = true;
+            }
+            else
+            {
+                if (motorController->IsCubeInstructionDone(nextInstruction))
+                {
+                    connector->sendDebugPrint("done!");
+                    finishedIns = 1;
+                    AddLatestExecutedInstruction(nextInstruction);
+                    hasMoveInit = false;
+                }
+                else
+                {
+                    connector->sendDebugPrint("Still Moving");
+                    finishedIns = 0;
+                }
+            }
+        }
+        motorController->runMotors();
+        if (currentProgram.timeOfProgramStart == 0)
+        {
+            digitalWrite(28, LOW);
+            digitalWrite(12, LOW);
+
+            currentProgram.timeOfProgramStart = millis();
+        }
+
+        if (currentProgram.totalInstructions <= nextInstructionId + finishedIns)
+        {
+            currentProgram.runningTime = millis() - currentProgram.timeOfProgramStart;
+            statusCode = STATUS::IDLE;
+
+            digitalWrite(28, HIGH);
+            digitalWrite(12, HIGH);
+            delay(800);
+            connector->sendDebugPrint("Send Finished Report");
+            connector->sendProgramFinishedReport(currentProgram.id, currentProgram.runningTime);
+        }
+        else
+        {
+            currentProgram.lastInstructionId += finishedIns;
+            stateHasChanged = true;
+        }
+    }
+
+    void reportChanges()
+    {
+        if (stateHasChanged)
+        {
+            if (statusCode != STATUS::RUN) // war mal da: setting.isLogging == false ||
+            {
+                connector->sendDebugPrint("Send Full Status");
+                connector->sendProgramProgressUpdate(currentProgram.id, currentProgram.lastInstructionId, currentProgram.runningTime);
+                connector->sendDebugPrint("Sucessfull");
+            }
+            connector->sendStatusUpdate(StatusCodeAsString());
+            stateHasChanged = false;
+        }
+    }
 
     void GetInstruction(String instructions, int id, char *outInstruction)
     {
@@ -195,9 +215,6 @@ private:
             break;
         case (STATUS::PAUSE):
             return "PAUSE";
-            break;
-        case (STATUS::FINISHED):
-            return "FINISHED";
             break;
         default:
             return "UNKNOWN";
@@ -221,11 +238,11 @@ private:
     }
 
     STATUS statusCode = STATUS::IDLE;
-    bool stateChanged = true;
+    bool stateHasChanged = true;
     String executedInstruction = "";
 
     ServerSerialConnector *connector;
     Program currentProgram;
-    Setting setting;
+    MagicSettings settings;
     MotorController *motorController;
 };

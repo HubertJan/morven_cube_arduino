@@ -20,6 +20,15 @@ public:
     AccelStepper stL = AccelStepper(1, 3, 9);  // STEP, DIR
     AccelStepper stB = AccelStepper(1, 4, 10); // STEP, DIR
     AccelStepper stU = AccelStepper(1, 5, 11);
+
+    MotorSettings motorSettings = {
+        42000,
+        43000, // Limit 60000
+        19,
+        20,
+        4000,
+    };
+
     void runMotors()
     {
         debugCounter += 1;
@@ -56,17 +65,8 @@ public:
                 stB.setSpeed(stepperspeed);
                 stU.setAcceleration(acc50); //set acceleration (steps/second^2)
                 stU.setMaxSpeed(maxSp);         //set max speed the motor will turn (steps/second)
-                stU.setSpeed(stepperspeed); 
+                stU.setSpeed(stepperspeed);
         */
-    }
-
-    void setSettings(int newAcc50, int newAcc100, int newCc50, int newCc100, int newMaxSp)
-    {
-        acc50 = newAcc50;
-        acc100 = newAcc100;
-        cc50 = newCc50;
-        cc100 = newCc100;
-        maxSp = newMaxSp;
     }
 
     void moveMotor(char motor, int target)
@@ -79,7 +79,7 @@ public:
             target = -1;
         }
         int steps = target * 50;
-        int acceleration = acc50;
+        int acceleration = motorSettings.acc50;
 
         if (target == 2)
         { // Falls es eine halbe umdrehung ist, wird die stepperAcceleration erhöht
@@ -116,7 +116,6 @@ public:
         AccelStepper responsibleStepper = getResponsibleStepper(motor);
 
         return responsibleStepper.distanceToGo();
-
     }
     bool IsCubeInstructionDone(char instruction[3])
     {
@@ -219,15 +218,8 @@ public:
     }
 
 private:
-    int speeds = 0;
     int dir = 1;           // used to switch direction
     String incoming = "1"; // for incoming serial data
-    int acc50 = 42000;
-    int acc100 = 43000; // Limit 60000
-    int maxSp = 4000;
-    int cc50 = 19;
-    int cc100 = 20;
-
     int debugCounter = 0;
 
     void FirstStepperSpin(int steps)

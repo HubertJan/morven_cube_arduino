@@ -4,5 +4,4 @@ enum class STATUS
     PREPARE,
     RUN,
     PAUSE,
-    FINISHED,
 };

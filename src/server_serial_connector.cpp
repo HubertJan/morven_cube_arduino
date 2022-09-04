@@ -29,20 +29,40 @@ public:
         }
     }
 
-    void sendFullStatus(
-        String programInstructions,
+    void sendProgramProgressUpdate(
         String programId,
-        String latestInstructionId,
-        String status,
-        String runtime)
+        int latestInstructionFinishedId,
+        int runtime)
     {
         connector->sendData(
-            createDataString(
-                programInstructions,
+            createProgramProgressUpdate(
                 programId,
-                latestInstructionId,
-                status,
+                latestInstructionFinishedId,
                 runtime));
+    }
+
+    void sendProgramFinishedReport(
+        String programId,
+        int runtime)
+    {
+        connector->sendData(createFinishedReport(programId, runtime));
+    }
+
+    void sendStatusUpdate(String status)
+    {
+        connector->sendData(convertDataToString("ty", "st") + convertDataToString("st", status));
+    }
+
+    String createFinishedReport(String programId, int runtime)
+    {
+        return convertDataToString("ty", "fi") + convertDataToString("id", programId) + convertDataToString("rt", String(runtime));
+    }
+
+    String createProgramProgressUpdate(String programId,
+                                       int latestInstructionFinishedId,
+                                       int runtime)
+    {
+        return convertDataToString("ty", "up") + convertDataToString("id", programId) + convertDataToString("rt", String(runtime) + convertDataToString("in", String(latestInstructionFinishedId)));
     }
 
     String createDataString(String programInstructions,
@@ -72,11 +92,11 @@ private:
     {
         if (arguments == "true")
         {
-            arduino->SwitchPause(true);
+            arduino->changeIsPausing(true);
         }
         else if (arguments == "false")
         {
-            arduino->SwitchPause(false);
+            arduino->changeIsPausing(false);
         }
     }
 
@@ -84,7 +104,7 @@ private:
     {
         String instructions;
         String id;
-        bool isDoubleMoves;
+        bool useDoubleInstruction;
         MotorSettings motorSettings;
     };
 
@@ -106,10 +126,13 @@ private:
     void handleProgram(String arguments)
     {
         ProgramArguments programArguments = extractProgramArguments(arguments);
-        arduino->SetProgram(
+        arduino->setupProgram(
             programArguments.instructions,
-            programArguments.id,
-            true,
+            programArguments.id);
+        arduino->updateSettings(
+            {0,
+             programArguments.useDoubleInstruction,
+             false},
             programArguments.motorSettings);
         connector->sendResponse();
     }
