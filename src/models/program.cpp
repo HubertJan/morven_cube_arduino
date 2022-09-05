@@ -3,17 +3,21 @@
 struct Program
 {
     String id = "";
-    int lastInstructionId = 0;
     String instructions = "";
     int totalInstructions;
-    unsigned long runningTime = 0;
-    unsigned long timeOfProgramStart = 0;
 };
 
-struct ProgramState{
+struct ProgramState
+{
     int lastFinishedInstructionId;
+    bool isRunning;
+    unsigned long runningTime = 0;
+    unsigned long timeOfProgramStart = 0;
+}
+
+struct InstructionState
+{
     bool isCurrentlyExecutingDouble;
-    bool hasInitCurrentInstruction;
     char firstCurrentlyExecutingInstruction[3];
     char secondCurrentlyExecutingInstruction[3];
 };
