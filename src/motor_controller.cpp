@@ -31,8 +31,8 @@ public:
     AccelStepper stU = AccelStepper(1, 5, 11);
     void runMotors()
     {
+        // TODO: Wird immer wieder ausgeführt, sollte richtig sein.
         debugCounter += 1;
-        return;
         //stD.move(10);
         //tone(22, 1000);
         stD.run();
@@ -47,7 +47,18 @@ public:
     {
         pinMode(28, OUTPUT); // Enable
         pinMode(12, OUTPUT); //Enable
-/* 
+
+    }
+
+    void setSettings(int newAcc50, int newAcc100, int newCc50, int newCc100, int newMaxSp)
+    {
+        //TODO: Settings werden geändert, wahrscheinlich das auskommentierte
+        acc50 = newAcc50;
+        acc100 = newAcc100;
+        cc50 = newCc50;
+        cc100 = newCc100;
+        maxSp = newMaxSp;
+    /* 
         stD.setAcceleration(acc50); //set acceleration (steps/second^2) VERMUTLICH IDEAL Ac: 8000 MaxSpeed: 3000 Speed: 1100
         stD.setMaxSpeed(maxSp);         //set max speed the motor will turn (steps/second)
         stD.setSpeed(stepperspeed);
@@ -68,17 +79,9 @@ public:
         stU.setSpeed(stepperspeed); */
     }
 
-    void setSettings(int newAcc50, int newAcc100, int newCc50, int newCc100, int newMaxSp)
-    {
-        acc50 = newAcc50;
-        acc100 = newAcc100;
-        cc50 = newCc50;
-        cc100 = newCc100;
-        maxSp = newMaxSp;
-    }
-
     void moveMotor(char motor, int target)
-    {     
+    { 
+    // TODO: Wird bisher nicht einmal aufgeführen, kannst du vlt nutzen keine ahnung
       //tone(22, 1000); //Testton
    
         target -= 48; //Da z.B. eine Zahl 2 als char toInt 52 ist
@@ -154,6 +157,7 @@ public:
     }
     bool IsCubeInstructionDone(char instruction[3])
     {
+        //TODO: Aktuelle ausgeführte instruction wird eingegeben und gekuckt, ob der befehl schon fertig ist
         if (debugCounter >= 5){
             return true;
         }
@@ -191,6 +195,7 @@ public:
     }
     void ExecuteCubeInstruction(char instruction[3])
     {
+         //TODO: wird einmal pro instruction ausgeführt, startet motoren hoffentlich.
         debugCounter = 0;
          // Return: Bool - If instruction is finished, return true. Otherwise false
       //tone(22, 1000); //Testton
@@ -203,23 +208,11 @@ public:
 
        moveMotor(instruction[0], instruction[1]); */
     }
-    void ExecuteCubeDoubleInstruction(char instructionA[3], char instructionB[3])
-    {
-        debugCounter = 0;
-   /*      bool isFinished = false;
-        while (isFinished == false)
-        {
-            bool instr1 = ExecuteCubeInstruction(instructionA);
-            bool instr2 = ExecuteCubeInstruction(instructionB);
-            if (instr1 && instr2)
-            {
-                isFinished = true;
-            }
-        } */
-    }
+
 
     bool CheckDoubleInstruction(char instructionA[3], char instructionB[3])
     {
+         //TODO: das selbe IsCubeInstructionDone aber mit zwei instruction. eigentlich sinnfrei, sollte einfach mit IsCubeInstructionDone ersetzbar sein.
         bool isDouble = false;
         if (instructionA[0] == instructionB[0])
         {
