@@ -9,3 +9,11 @@ struct Program
     unsigned long runningTime = 0;
     unsigned long timeOfProgramStart = 0;
 };
+
+struct ProgramState{
+    int lastFinishedInstructionId;
+    bool isCurrentlyExecutingDouble;
+    bool hasInitCurrentInstruction;
+    char firstCurrentlyExecutingInstruction[3];
+    char secondCurrentlyExecutingInstruction[3];
+};

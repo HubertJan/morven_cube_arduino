@@ -4,7 +4,7 @@
 #include "models/program.cpp"
 #include "models/settings.cpp"
 
-class Magic : IArduinoClient
+class Magic
 {
 public:
     Magic() = delete;

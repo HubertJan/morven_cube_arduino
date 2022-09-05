@@ -2,15 +2,6 @@
 #include <AccelStepper.h>
 #include <Servo.h>
 
-#define stepperAcceleration 42000
-#define stepper100Acceleration 43000 // Limit 60000
-#define stepperMaxSpeed 4000
-#define stepperspeed 4000
-
-#define stepperDelay 0
-#define cornerCuttingValue 19
-#define cornerCutting100Value 20
-
 class MotorController
 {
 public:
