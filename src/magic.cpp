@@ -172,6 +172,11 @@ public:
         }
     }
 
+    void rotateCube(int rotationInDegree){
+        int steps = ((rotationInDegree / 360) * 200);
+        motorController->rotateCube(steps);
+    }
+
 private:
     String prepareInstructions = "";
     bool hasMoveInit = false;

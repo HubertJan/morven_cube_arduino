@@ -246,6 +246,14 @@ public:
         return isDouble;
     }
 
+    void rotateCube(int steps)
+    {
+        stD.setAcceleration(5000);
+        stD.setMaxSpeed(700);
+        stD.move(steps);
+        stD.runToPosition();
+    }
+
 private:
     int speeds = 0;
     int dir = 1;           //used to switch direction
@@ -258,13 +266,7 @@ private:
 
     int debugCounter = 0;
 
-    void FirstStepperSpin(int steps)
-    {
-        stD.setAcceleration(5000);
-        stD.setMaxSpeed(700);
-        stD.move(steps);
-        stD.runToPosition();
-    }
+
 
     const char doubleInstructionList[3][2] = {
         {'L', 'R'},

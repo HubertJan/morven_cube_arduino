@@ -15,9 +15,8 @@ public:
     virtual void SwitchPause(bool value) = 0;
     virtual void SetProgram(String instructionString, String id, bool fastMode, MotorSetting motorSetting) = 0;
     virtual void SetSetting(int val, bool val2) = 0;
+    virtual void rotateCube(int rotationInDegree) = 0;
 };
-
-
 
 class PCConnector
 {
@@ -45,12 +44,12 @@ public:
 
     void SendFullStatus(String prgIns, String prgId, String insId, String exeIns, String sta, String rt)
     {
-        Serial.println("data;" + DataToString("in", prgIns) //programInstructions
-                       + DataToString("id", prgId)          //programId
-                       + DataToString("ci", insId)          //currentInstructionId
-                       + DataToString("li", exeIns)         //latestInstructions
-                       + DataToString("st", sta)            //status
-                       + DataToString("rt", rt)             //runTime
+        Serial.println("data;" + DataToString("in", prgIns) // programInstructions
+                       + DataToString("id", prgId)          // programId
+                       + DataToString("ci", insId)          // currentInstructionId
+                       + DataToString("li", exeIns)         // latestInstructions
+                       + DataToString("st", sta)            // status
+                       + DataToString("rt", rt)             // runTime
         );
     }
 
@@ -89,6 +88,14 @@ private:
         delay(100);
     }
 
+    void rotateCube(String argsString)
+    {
+        int argNumber = CountArguments(argsString);
+        String args[argNumber];
+        ArgsToArray(argsString, argNumber, args);
+        int rotationInDegree = args[0].toInt();
+    }
+
     void SetProgram(String argsString)
     {
         int argNumber = CountArguments(argsString);
@@ -96,12 +103,15 @@ private:
         ArgsToArray(argsString, argNumber, args);
         String instructions = args[0];
         String id = args[1];
-        if ( args[2] == "1"){
+        if (args[2] == "1")
+        {
             bool isDouble = true;
-        }else{
+        }
+        else
+        {
             bool isDouble = false;
         }
-       
+
         MotorSetting setting = MotorSetting();
 
         setting.acc50 = args[3].toInt();
@@ -199,14 +209,16 @@ private:
     }
 
     typedef void (PCConnector::*CommandHandler)(const String);
-    const String cdKeywords[3] = {
+    const String cdKeywords[4] = {
         "pause",
         "program",
+        "rotate",
         "option"};
-    const CommandHandler cdFunctions[3] = {
+    const CommandHandler cdFunctions[4] = {
         &PCConnector::SetPause,
         &PCConnector::SetProgram,
         &PCConnector::ChangeSettings,
+        &PCConnector::rotateCube,
     };
 
     String receivedString = "";
@@ -241,7 +253,7 @@ private:
                 DebugPrint(receivedString);
                 String commandLine = receivedString;
                 receivedString = "";
-                return commandLine; //commandLine;
+                return commandLine; // commandLine;
             }
             else
             {
